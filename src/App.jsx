@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import axios from "axios";
+import { Container, Nav, Button, Status, Transcript, Answer } from "./Style";
+import "./App.css";
 
 const App = () => {
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
   const [answer, setAnswer] = useState("");
-  const URL = "";
+  const URL = "https://api.openai.com/v1/engines/davinci-codex/completions";
+  const API_KEY = "your-api-key";
 
   const toggleListening = () => {
     if (listening) {
@@ -25,9 +28,21 @@ const App = () => {
 
   const sendCommandToApi = async (command) => {
     try {
-      const response = await axios.post(URL, { command });
+      const response = await axios.post(
+        URL,
+        {
+          prompt: command,
+          max_tokens: 150,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+          },
+        }
+      );
       console.log("API 응답:", response.data);
-      return response.data.answer;
+      return response.data.choices[0].text.trim();
     } catch (error) {
       console.error("API 요청 실패:", error);
       return null;
@@ -51,19 +66,26 @@ const App = () => {
   }
 
   return (
-    <div>
-      <nav>
-        <button onClick={toggleListening}>{listening ? "Stop" : "Start"}</button>
-        <button onClick={resetTranscript}>Reset</button>
-      </nav>
+    <Container>
+      <Nav>
+        <Button onClick={toggleListening}>{listening ? "Stop" : "Start"}</Button>
+        <Button onClick={resetTranscript}>Reset</Button>
+      </Nav>
 
-      <h3>마이크 상태:</h3>
-      <p>{listening ? "true" : "false"}</p>
-      <h3>들은 문장: </h3>
-      <p>{transcript}</p>
-      <h3>답변: </h3>
-      <p>{answer}</p>
-    </div>
+      <Status>
+        <p>{listening ? "mic on" : "mic off"}</p>
+      </Status>
+
+      <Transcript>
+        <h3>INPUT: </h3>
+        <p>{transcript}</p>
+      </Transcript>
+
+      <Answer>
+        <h3>OUTPUT: </h3>
+        <p>{answer}</p>
+      </Answer>
+    </Container>
   );
 };
 
