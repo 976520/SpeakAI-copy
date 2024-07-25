@@ -7,11 +7,15 @@ const App = () => {
   const [answer, setAnswer] = useState("");
   const URL = "";
 
-  const startListening = () => SpeechRecognition.startListening({ continuous: true });
-  const stopListening = () => SpeechRecognition.stopListening();
+  const toggleListening = () => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+    } else {
+      SpeechRecognition.startListening({ continuous: true });
+    }
+  };
 
   const handleCommand = async (command) => {
-    // API에 명령어 전송 및 응답 처리
     const responseAnswer = await sendCommandToApi(command);
     if (responseAnswer) {
       setAnswer(responseAnswer);
@@ -23,7 +27,7 @@ const App = () => {
     try {
       const response = await axios.post(URL, { command });
       console.log("API 응답:", response.data);
-      return response.data.answer; // API에서 받은 답변을 반환
+      return response.data.answer;
     } catch (error) {
       console.error("API 요청 실패:", error);
       return null;
@@ -49,8 +53,7 @@ const App = () => {
   return (
     <div>
       <nav>
-        <button onClick={startListening}>Start</button>
-        <button onClick={stopListening}>Stop</button>
+        <button onClick={toggleListening}>{listening ? "Stop" : "Start"}</button>
         <button onClick={resetTranscript}>Reset</button>
       </nav>
 
