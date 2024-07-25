@@ -1,20 +1,32 @@
-import { React, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
+import axios from "axios";
 
 const App = () => {
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
   const [answer, setAnswer] = useState("");
+  const URL = "";
 
   const startListening = () => SpeechRecognition.startListening({ continuous: true });
   const stopListening = () => SpeechRecognition.stopListening();
 
-  const handleCommand = (command) => {
-    if (command.includes("안녕")) {
-      speak("안녕하세요");
-      setAnswer("안녕하세요");
-    } else {
-      speak("모르겠습니다.");
-      setAnswer("모르겠습니다.");
+  const handleCommand = async (command) => {
+    // API에 명령어 전송 및 응답 처리
+    const responseAnswer = await sendCommandToApi(command);
+    if (responseAnswer) {
+      setAnswer(responseAnswer);
+      speak(responseAnswer);
+    }
+  };
+
+  const sendCommandToApi = async (command) => {
+    try {
+      const response = await axios.post(URL, { command });
+      console.log("API 응답:", response.data);
+      return response.data.answer; // API에서 받은 답변을 반환
+    } catch (error) {
+      console.error("API 요청 실패:", error);
+      return null;
     }
   };
 
